@@ -8,6 +8,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "eslint": "^7.20.0",
     "vue": "^3.0.5"
   },
   "devDependencies": {
