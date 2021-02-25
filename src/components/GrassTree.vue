@@ -2,7 +2,9 @@
 <div class="page">
 
 <h2>Grass Tree Builder</h2>
-<p>Here's a web app to build a grass tree in scalable vector graphics (SVG). Change the inputs to build the tree trunk and spike, and then click the button to generate the fronds and flower. <br>Warning: some inputs break the SVG, refresh page if things go wrong.</p>
+<p>Here's a web app to build a grass tree in scalable vector graphics (SVG). 
+  Change the inputs to build the tree trunk and spike, and then click the button to generate the fronds and flower. <br>
+  Warning: some inputs (marked with *) may cause strange behaviour, refresh page if things go wrong.</p>
 <div class="container">
 <div class="controls">
   <h6>Dimensions</h6>
@@ -12,6 +14,7 @@
     </p>
   </div>
     <button @click="generate">Generate Fronds & Flower</button>
+    <button @click="randomise">Randomise Fronds</button>
   <br>
 </div>
 <div class="color">
@@ -96,7 +99,7 @@
   </svg>
 </div>
 </div>
-<p>&copy; Joe Crosby, 2021</p>
+<p class="copy">Developed by Joe Crosby, &copy; 2021</p>
   </div>
 </template>
 
@@ -114,7 +117,9 @@ const colorStyle = [
   { name: 'White Silhouette', value: 'white' },
   { name: 'Black Silhouette', value: 'black' },
 ]
-const refreshRequired = ['noFronds']
+
+/* list of inputs that will need a browser refresh - making them not really usable */
+const refreshRequired = ['noFronds'];
 /**
  * reactive values
  */
@@ -137,7 +142,7 @@ const svg = reactive({
   showGuideCircles: 0,
   flowerStart: 0.5,
   flowerStop: 0.9,
-  sprondRandom: 20
+  frondRandom: 20
 })
 
 // not needed if watchEffect works
@@ -150,6 +155,10 @@ const svgPoints = reactive({
   yMid: Array(svg.noFronds).fill(250),
   xOuter: Array(svg.noFronds).fill(250),
   yOuter: Array(svg.noFronds).fill(250),
+  xMidRandom: Array(svg.noFronds).fill(0),
+  yMidRandom: Array(svg.noFronds).fill(0),
+  xOuterRandom: Array(svg.noFronds).fill(0),
+  yOuterRandom: Array(svg.noFronds).fill(0),
 })
 const svgFlower = reactive({
   xFlowerTop: 242,
@@ -178,21 +187,6 @@ const svgComp = computed(() => {
     ySpikeTop: parseFloat(svg.height - parseInt(svg.marginBottom) - parseInt(svg.trunkHeight) - parseInt(svg.spikeHeight))
   }
 })
-/**
- * watchers
- * trying to use watchEffect
- */
-// Object.keys(svg).forEach(key => {
-//   console.log('watcher setup ', key)
-//   watch(key, (n, o) => {
-//     console.log('svg[key]: ', key, n, o)
-//       console.log('trigger?', n!==o)
-//     if (n !== o) {
-//         console.log('watcher: ', key, n)
-//         generate() 
-//       }
-//     })
-// })
   /**
    * methods/functions
    */
@@ -204,20 +198,31 @@ const svgComp = computed(() => {
  * @returns array of point data to be used in generating SVG paths
  */
 function generateFronds(someElementId, noFronds = svg.noFronds) {
+  console.log('someElementId: ', someElementId)
   const someElement = document.getElementById(someElementId)
   const length = someElement.getTotalLength() // float
   const period = length / noFronds; // float
-  const points = Array(noFronds).fill({}).map((el, i) => someElement.getPointAtLength(i * period))
-  const xPoints = points.map(p => p.x)
-  const yPoints = points.map(p => p.y)
-
-  // end here for inner ellipse, don't want to apply random scatter to the center
-  if (someElementId === 'inner') {
-    return [points, xPoints, yPoints]
-  }
-  const xPointsRandom = xPoints.map(p => p + (Math.random() - 0.5)*parseInt(svg.sprondRandom))
-  const yPointsRandom = yPoints.map(p => p + (Math.random() - 0.5)*parseInt(svg.sprondRandom))
-  return [points, xPointsRandom, yPointsRandom]
+  Array(noFronds).fill({}).forEach((el, i) => {
+    //get the points
+    const svgPoint = someElement.getPointAtLength(i * period)
+    // write them to desired location while in first iteration
+    switch (someElementId) {
+      case 'inner':
+        svgPoints.xInner[i] = svgPoint.x; // doesn't get random
+        svgPoints.yInner[i] = svgPoint.y;
+        break;
+      case 'mid':
+        svgPoints.xMid[i] = svgPoint.x + svgPoints.xMidRandom[i];
+        svgPoints.yMid[i] = svgPoint.y + svgPoints.yMidRandom[i];
+        break;
+      case 'outer':
+        svgPoints.xOuter[i] = svgPoint.x + svgPoints.xOuterRandom[i];
+        svgPoints.yOuter[i] = svgPoint.y + svgPoints.yOuterRandom[i];
+        break;
+      default:    
+    }
+    return
+  })
 }
 /**
  * generateFlower()
@@ -228,7 +233,9 @@ function generateFronds(someElementId, noFronds = svg.noFronds) {
  * @returns writes top, mid and bottom x,y coordinates to svgFlower
  */
 function generateFlower(someElementId = 'spike', start = parseFloat(svg.flowerStart), stop = parseFloat(svg.flowerStop)) {
-    const someElement = document.getElementById(someElementId)
+  console.log('logging time for generating flower')
+  console.time('flower')
+  const someElement = document.getElementById(someElementId)
   const length = someElement.getTotalLength() // float
   const top = someElement.getPointAtLength(start * length);
   const mid = someElement.getPointAtLength(parseFloat((start + stop)/2) * length);
@@ -239,6 +246,7 @@ function generateFlower(someElementId = 'spike', start = parseFloat(svg.flowerSt
   svgFlower.yFlowerTop = top.y
   svgFlower.yFlowerMid = mid.y
   svgFlower.yFlowerBot = bottom.y
+  console.timeEnd('flower')
 }
 
 /**
@@ -256,11 +264,38 @@ function frondTest(i) {
   if (parseInt(i) <= parseInt(n * 7/8)) return 'upper'
   return 'mid'
 }
+watchEffect(() => {
+  console.log('randomise', svg.frondRandom)
+  randomise()
+  // setTimeout(generate,1) // cannot getLength until after its been generated
+})
 // run the function once, track its dependencies, and run again when they change...
 watchEffect(() => {
-  console.log('watch test', svg.noFronds)
-  setTimeout(generate, 100);
-  })
+  // the following variables require a redraw. 
+  // touching them here makes watchEffect trigger when they update without otherwise declaring as individual watch targets within an object (reactivity issues)
+  console.log('watch test', svg.trunkSwayTop, 
+  svg.frondDroop, 
+  svg.marginBottom,
+  svg.trunkHeight,
+  )
+  setTimeout(generate, 1);
+})
+
+// watchEffect for generating flower
+// TODO: transform: translate() the fronds, spike and flower to the top of the trunk
+watchEffect(() => {
+  console.log('watch test for flower: ',
+  svg.trunkSwayTop,
+  svg.trunkHeight,
+  svg.spikeSwayMid,
+  svg.spikeSwayTop,
+  svg.spikeHeight,
+  svg.flowerStart,
+  svg.flowerStop)
+
+  setTimeout(generateFlower,1);
+})
+
 /**
  * generate()
  * helper function to call everything that needs to be recalculated
@@ -271,19 +306,27 @@ function generate() {
   // timing this function for performance
   // goal: 16ms
   // latest: ~50ms
-  console.time('test')
-  generateFlower();
-  let out = generateFronds('inner');
-  svgPoints.xInner = out[1]
-  svgPoints.yInner = out[2]
-  out = generateFronds('mid');
-  svgPoints.xMid = out[1]
-  svgPoints.yMid = out[2]
-  out = generateFronds('outer');
-  svgPoints.xOuter = out[1]
-  svgPoints.yOuter = out[2]
-  console.timeEnd('test')
+
+  console.log('logging time for generating fronds')
+  console.time('fronds')
+  const elements = ['inner', 'mid', 'outer']
+  elements.forEach(element => {
+    console.log('element: ', element)
+    generateFronds(element)
+  })
+  console.timeEnd('fronds')
   }
+  /**
+   * create reandom scatter for the end and midpoint of fronds
+   * store this to prevent it re-seeding on every change
+   */
+function randomise() {
+  svgPoints.xMidRandom = svgPoints.xMidRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom))
+  svgPoints.yMidRandom = svgPoints.yMidRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom))
+  svgPoints.xOuterRandom = svgPoints.xOuterRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom))
+  svgPoints.yOuterRandom = svgPoints.yOuterRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom))
+  setTimeout(generate,1)
+}
 </script>
 
 <style scoped>
@@ -291,6 +334,7 @@ svg {
   border: 1px grey solid;
 }
 .default {
+  background-color: white;
   /* dummy class to fall through to base styling */
 }
 /* used for silhouette's. important used to override defs patterns */
@@ -368,5 +412,9 @@ svg {
   stroke: none;
   stroke-width: 1px;
   stroke-dasharray: 2 2;
+}
+.copy {
+  font-size: 0.8rem;
+  color: grey;
 }
 </style>
