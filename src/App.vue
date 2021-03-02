@@ -1,5 +1,5 @@
 <template>
-  <GrassTree msg="Hello Vue 3 + Vite" />
+  <GrassTree />
 </template>
 
 <script setup>

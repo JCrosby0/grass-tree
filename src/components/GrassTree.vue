@@ -1,7 +1,7 @@
 <template>
   <div class="page">
 
-    <h2>Grass Tree Builder</h2>
+    <h2>Grass Tree Builder Test</h2>
     <p>Here's a web app to build a grass tree in scalable vector graphics (SVG). 
       Change the inputs to build the tree trunk and spike, and then click the button to generate the fronds and flower.</p>
   <div class="container">
@@ -9,12 +9,13 @@
     <!-- CONTROL PANEL -->
     <div class="controls">
       <h6>Dimensions</h6>
-      <div v-for="key in Object.values(svg).filter(k => k.display === true)" :key="key" class="item">
-        <p>{{key.label}}<span style='{color: red}' v-if="refreshRequired.includes(key)">*</span>
-          <input v-model="key.value" type="range" :min="key.min" :max="key.max" :step="key.step">
-        </p>
-      </div>
-      <!-- <button @click="generate">Generate Fronds & Flower</button> -->
+      <div v-for="category in Object.values.filter(v => v.group)" :key="'category'+category">
+        <h6>{{category.group}}</h6>
+        <div v-for="key in Object.values(svg).filter(k => k.group === category.group && k.display === true)" :key="key" class="item">
+          <p>{{key.label}}<span style='{color: red}' v-if="refreshRequired.includes(key)">*</span>
+            <input v-model="key.value" type="range" :min="key.min" :max="key.max" :step="key.step">
+          </p>
+        </div>
       <button @click="randomise">Randomise Fronds</button>
       <br>
     </div>
@@ -188,11 +189,6 @@
 <script setup>
 import { defineProps, reactive, computed, watchEffect, toRefs } from 'vue'
 
-defineProps({
-  msg: String
-})
-
-
 /** static values */
 const colorStyle = [
   { name: 'Full Colour', value: 'default' },
@@ -224,23 +220,37 @@ const state = reactive({
   selectedColors: []
 })
 const svg = reactive({
-  width: {value: 500, min: 300, max: 750, display: false},
-  height: {value: 500, min: 300, max: 750, display: false},
-  marginBottom: { label:"Bottom Margin", value:50, min:0, max: 200, display: true },
-  noFronds: { label:"Number of Fronds", value:300, min:30, max: 720, display: false },
-  trunkSwayMid: { label:"Trunk Sway - Mid", value:-10, min:-100, max: 100, display: true },
-  trunkSwayTop: { label:"Trunk Sway - Top", value:2, min:-100, max: 100, display: true },
-  trunkHeight: { label:"Trunk Height", value:150, min:50, max: 350, display: true },
-  trunkWidth: { label:"Trunk Width", value:40, min:1, max: 100, display: true },
-  spikeSwayMid: { label:"Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
-  spikeSwayTop: { label:"Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
-  spikeHeight: { label:"Spike Height", value:250, min:50, max: 350, display: true },
-  frondDroop: { label:"Frond Droop", value:15, min:0, max: 50, display: true },
-  frondSway: { label:"Frond Sway", value:0, min:-50, max: 50, display: true },
-  frondRandom: { label:"Frond Randomness", value:20, min:1, max: 100, display: true },
-  showGuideCircles: { label:"DEV Show Guide Circles", value:0, min: 0, max: 1, display: false },
-  flowerStart: { label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
-  flowerStop: { label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
+  width:                { value: 500, min: 300, max: 750, display: false},
+  height:               { value: 500, min: 300, max: 750, display: false},
+  marginBottom:         { group: 'position', label: "Bottom Margin", value:50, min:0, max: 200, display: true },
+  noBranches:           { group: "Trunk", label: "Number of Branches", value: 1, min: 1, max: 2, display: true },
+  trunkSwayMid:         { group: 'Trunk', label:"Trunk Sway - Mid", value:-10, min:-100, max: 100, display: true },
+  trunkSwayTop:         { group: 'Trunk', label:"Trunk Sway - Top", value:2, min:-100, max: 100, display: true },
+  trunkHeight:          { group: 'Trunk', label:"Trunk Height", value:150, min:50, max: 350, display: true },
+  trunkWidth:           { group: 'Trunk',  label: "Trunk Width", value:40, min:1, max: 100, display: true },
+  trunkLeftMid:         { group: 'Trunk - Left', label:"Trunk Sway - Mid", value:-10, min:-100, max: 100, display: true },
+  trunkLeftTop:         { group: 'Trunk - Left', label:"Trunk Sway - Top", value:2, min:-100, max: 100, display: true },
+  trunkLeftHeight:      { group: 'Trunk - Left', label:"Trunk Height", value:150, min:50, max: 350, display: true },
+  trunkRightMid:        { group: 'Trunk - Right', label:"Trunk Sway - Mid", value:-10, min:-100, max: 100, display: true },
+  trunkRightTop:        { group: 'Trunk - Right', label:"Trunk Sway - Top", value:2, min:-100, max: 100, display: true },
+  trunkRightHeight:     { group: 'Trunk - Right', label:"Trunk Height", value:150, min:50, max: 350, display: true },
+  spikeSwayMid:         { group: 'Spike', label: "Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
+  spikeSwayTop:         { group: 'Spike', label: "Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
+  spikeHeight:          { group: 'Spike', label: "Spike Height", value:250, min:50, max: 350, display: true },
+  spikeSecondSwayMid:   { group: 'Spike 2', group: 'Spike', label: "Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
+  spikeSecondSwayTop:   { group: 'Spike 2', label: "Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
+  spikeSecondHeight:    { group: 'Spike 2', label: "Spike Height", value:250, min:50, max: 350, display: true },
+  flowerStart:          { group: 'Flower', label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
+  flowerStop:           { group: 'Flower', label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
+  flowerVisible:        { group: 'Flower', label: "Show Flower", type: 'boolean', value: true, display: true},
+  flowerSecondStart:    { group: 'Flower 2', label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
+  flowerSecondStop:     { group: 'Flower 2',label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
+  flowerSecondVisible:  { group: 'Flower 2', label: "Show Flower", type: 'boolean', value: true, display: true},
+  noFronds:             { group: 'Fronds', label:"Number of Fronds", value:300, min:30, max: 720, display: false },
+  frondDroop:           { group: 'Fronds', label:"Frond Droop", value:15, min:0, max: 50, display: true },
+  frondSway:            { group: 'Fronds', label:"Frond Sway", value:0, min:-50, max: 50, display: true },
+  frondRandom:          { group: 'Fronds', label:"Frond Randomness", value:20, min:1, max: 100, display: true },
+  showGuideCircles:     { label:"DEV Show Guide Circles", value:0, min: 0, max: 1, display: false },
 })
 
 // not needed if watchEffect works
@@ -276,22 +286,6 @@ const svgShapes = reactive({
 /**
  * computed values
  */
-// const svgComp = computed(() => {
-//   return {
-//     xMid: svg.width.value / 2,
-//     yMid: svg.height.value / 2,
-//     trunkMid: parseFloat(svg.trunkHeight.value / 2.0),
-//     xTrunkMid: parseFloat(svg.width.value / 2.0 - parseInt(svg.trunkSwayMid.value)),
-//     yTrunkMid: parseFloat(svg.height.value - parseInt(svg.marginBottom.value) - parseInt(svg.trunkHeight.value) / 2.0),
-//     xTrunkTop: parseFloat(svg.width.value / 2.0 + parseInt(svg.trunkSwayTop.value)),
-//     yTrunkTop: parseFloat(svg.height.value - parseInt(svg.marginBottom.value) - parseInt(svg.trunkHeight.value)),
-//     spikeMid: svg.spikeHeight.value / 2.0,
-//     xSpikeMid: parseFloat(svg.spikeSwayMid.value),
-//     ySpikeMid: parseFloat(-svg.spikeHeight.value / 2.0),
-//     xSpikeTop: parseFloat(svg.spikeSwayTop.value),
-//     ySpikeTop: parseFloat(-svg.spikeHeight.value)
-//   }
-// })
 const xMid = computed(() => { return svg.width.value / 2 })
 const yMid = computed(() => { return svg.height.value / 2 })
 const trunkMid = computed(() => { return svg.trunkHeight.value / 2 })
@@ -309,7 +303,6 @@ const polyOrangeTopLeft = computed(() => { return `${Math.random() * 250},${Math
 const polyOrangeTopRight = computed(() => { return `${Math.random() * 250 + 250},${Math.random() * 250}`})
 const polyOrangeBotLeft = computed(() => { return `${Math.random() * 250},${Math.random() * 250 + 250}`})
 const polyOrangeBotRight = computed(() => { return `${Math.random() * 250 + 250},${Math.random() * 250 + 250}`})
-
 
 const pathTrunk = computed(() => {
   return `M ${xMid.value} ${svg.height.value - svg.marginBottom.value} Q ${xTrunkMid} ${yTrunkMid} ${xTrunkTop} ${yTrunkTop}`
@@ -334,60 +327,71 @@ const svgPaths = computed(() => {
 /**
  * generateFronds()
  * generate the fronds by drawing paths from points generated around 3 elipses
- * @param {string} someElementId target elipse id
- * @param {int} noFronds number of fronds, number of points around the elipse
- * @returns array of point data to be used in generating SVG paths
  */
-function generateFronds(someElementId, noFronds = svg.noFronds.value) {
-  // console.log('someElementId: ', someElementId)
-  const someElement = document.getElementById(someElementId)
-  const length = someElement.getTotalLength() // float
-  const period = length / noFronds; // float
-  Array(noFronds).fill({}).forEach((el, i) => {
-    //get the points
-    const svgPoint = someElement.getPointAtLength(i * period)
-    // write them to desired location while in first iteration
-    switch (someElementId) {
-      case 'inner':
-        svgPoints.xInner[i] = svgPoint.x; // doesn't get random
-        svgPoints.yInner[i] = svgPoint.y;
-        break;
-      case 'mid':
-        svgPoints.xMid[i] = svgPoint.x + svgPoints.xMidRandom[i];
-        svgPoints.yMid[i] = svgPoint.y + svgPoints.yMidRandom[i];
-        break;
-      case 'outer':
-        svgPoints.xOuter[i] = svgPoint.x + svgPoints.xOuterRandom[i];
-        svgPoints.yOuter[i] = svgPoint.y + svgPoints.yOuterRandom[i];
-        break;
-      default:    
+function generateFronds() {
+  // predefine the period and the element lookup, since they will be reference many times
+  // while iterating through the fronds
+  let period = { inner: undefined, mid: undefined, outer: undefined }
+  let element = { inner: undefined, mid: undefined, outer: undefined }
+  // find the distance between points for each elipse
+  const elipses = ['inner','mid','outer']
+  elipses.forEach((id, i) => {
+    element[id] = document.getElementById(id)
+    try{
+      period[id] = element[id].getTotalLength() / svg.noFronds.value
     }
-    return
+    catch{
+      console.warn('elipses are not yet drawn, cannot query for their length')
+    }
   })
+  // for each frond, and each elipse, calculate the points
+  try{
+    Array(svg.noFronds.value).fill({}).forEach((frond, i) => {
+      elipses.forEach(id => {
+        const svgPoint = element[id].getPointAtLength(i * period[id])
+      switch (id) {
+        case 'inner':
+          svgPoints.xInner[i] = svgPoint.x; // doesn't get random
+          svgPoints.yInner[i] = svgPoint.y;
+          break;
+        case 'mid':
+          svgPoints.xMid[i] = svgPoint.x + svgPoints.xMidRandom[i];
+          svgPoints.yMid[i] = svgPoint.y + svgPoints.yMidRandom[i];
+          break;
+        case 'outer':
+          svgPoints.xOuter[i] = svgPoint.x + svgPoints.xOuterRandom[i];
+          svgPoints.yOuter[i] = svgPoint.y + svgPoints.yOuterRandom[i];
+          break;
+        default:    
+      }
+    })
+  })
+  }catch{
+    console.warn('unable to generate fronds before elipses exist')
+  }
 }
 /**
  * generateFlower()
  * generate the flower along the spike
- * @param {string} someElementId element to be targetted
- * @param {int} start starting point for length calculation
- * @param {int} end end point for length calculation
- * @returns writes top, mid and bottom x,y coordinates to svgFlower
  */
-function generateFlower(someElementId = 'spike', start = parseFloat(svg.flowerStart.value), stop = parseFloat(svg.flowerStop.value)) {
-  // console.log('logging time for generating flower')
-  // console.time('flower')
-  const someElement = document.getElementById(someElementId)
-  const length = someElement.getTotalLength() // float
-  const top = someElement.getPointAtLength(start * length);
-  const mid = someElement.getPointAtLength(parseFloat((start + stop)/2) * length);
-  const bottom = someElement.getPointAtLength(stop * length)
-  svgFlower.xFlowerTop = top.x
-  svgFlower.xFlowerMid = mid.x
-  svgFlower.xFlowerBot = bottom.x
-  svgFlower.yFlowerTop = top.y
-  svgFlower.yFlowerMid = mid.y
-  svgFlower.yFlowerBot = bottom.y
-  // console.timeEnd('flower')
+function generateFlower() {
+  try{
+    const start = parseFloat(svg.flowerStart.value)
+    const stop = parseFloat(svg.flowerStop.value)
+    const element = document.getElementById('spike')
+    const length = element.getTotalLength() // float
+    const top = element.getPointAtLength(start * length);
+    const mid = element.getPointAtLength(parseFloat((start + stop)/2) * length);
+    const bottom = element.getPointAtLength(stop * length)
+    svgFlower.xFlowerTop = top.x
+    svgFlower.xFlowerMid = mid.x
+    svgFlower.xFlowerBot = bottom.x
+    svgFlower.yFlowerTop = top.y
+    svgFlower.yFlowerMid = mid.y
+    svgFlower.yFlowerBot = bottom.y
+  } catch {
+    console.warn('unable to query length of spike before it exists')
+  }
 }
 
 /**
@@ -405,56 +409,20 @@ function frondTest(i) {
   if (parseInt(i) <= parseInt(n * 7/8)) return 'upper'
   return 'mid'
 }
-watchEffect(() => {
-  console.log('randomise', svg.frondRandom.value)
-  randomise()
-  // setTimeout(generate,1) // cannot getLength until after its been generated
-})
-// run the function once, track its dependencies, and run again when they change...
-watchEffect(() => {
-  // the following variables require a redraw. 
-  // touching them here makes watchEffect trigger when they update without otherwise declaring as individual watch targets within an object (reactivity issues)
-  console.log('watch test', 
-  svg.frondDroop.value,
-  svg.frondSway.value,
-  svg.marginBottom.value,
-  )
-  setTimeout(generate, 1);
-})
-
-// watchEffect for generating flower
-// TODO: transform: translate() the fronds, spike and flower to the top of the trunk
-watchEffect(() => {
-  console.log('watch test for flower: ',
-  svg.spikeSwayMid.value,
-  svg.spikeSwayTop.value,
-  svg.spikeHeight.value,
-  svg.flowerStart.value,
-  svg.flowerStop.value)
-
-  setTimeout(generateFlower,1);
-})
-
-/**
- * generate()
- * helper function to call everything that needs to be recalculated
- * hooked up to a button
- * TODO: automate this call
- */
-function generate() {
-  // timing this function for performance
-  // goal: 16ms
-  // latest: ~50ms
-
-  // console.log('logging time for generating fronds')
-  // console.time('fronds')
-  const elements = ['inner', 'mid', 'outer']
-  elements.forEach(element => {
-    // console.log('element: ', element)
-    generateFronds(element)
+// watchEffects call the function once, track the relevant variables, then call it again when they update
+// calling the variables in the watchEffect helps make sure the right things are tracked
+setTimeout(() => {
+  watchEffect(() => { randomise() })
+  watchEffect(() => {
+    const watchVariables = [svg.frondDroop.value, svg.frondSway.value]
+    generateFronds();
   })
-  // console.timeEnd('fronds')
-  }
+  watchEffect(() => {
+    const watchVariables = [svg.spikeSwayMid.value,svg.spikeSwayTop.value,svg.spikeHeight.value,svg.flowerStart.value,svg.flowerStop.value]
+    generateFlower();
+  })
+
+},100)
   /**
    * create reandom scatter for the end and midpoint of fronds
    * store this to prevent it re-seeding on every change
@@ -464,16 +432,15 @@ function randomise() {
   svgPoints.yMidRandom = svgPoints.yMidRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom.value))
   svgPoints.xOuterRandom = svgPoints.xOuterRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom.value))
   svgPoints.yOuterRandom = svgPoints.yOuterRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom.value))
-  setTimeout(generate,1)
+  generateFronds()
 }
-
+/**
+ * randomise the shapes being drawn, one point in each quadrant
+ * @param {string} shape which shape/color should be updated
+ */
 function randomiseShape(shape) {
-  console.log('randomising shape: ', shape)
   const x = parseInt(xMid.value)
-  console.log('xMid.value: ', xMid.value)
-  console.log('x: ', x)
   const y = parseInt(yMid.value)
-  console.log('Math.random()*x+x: ', Math.random()*x+x)
   svgShapes[shape] = `${Math.random()*x},${Math.random()*y} 
   ${Math.random()*x+x},${Math.random()*y} 
   ${Math.random()*x+x},${Math.random()*y+y} 
