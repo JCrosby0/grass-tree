@@ -46,7 +46,8 @@
             </linearGradient>
             <linearGradient id="frondColorLower" gradientTransform="rotate(90)">
               <stop offset="5%"  stop-color="green" />
-              <stop offset="95%" stop-color="yellowgreen" />
+              <stop offset="70%" stop-color="yellow" />
+              <stop offset="80%" stop-color="transparent" />>
             </linearGradient>
             <linearGradient
               id="trunkColor"
@@ -136,12 +137,12 @@
           <!-- fronds (grouped for collapsing in DOM view)-->
           <g>
             <path 
-              v-for="(point, i) in svgPoints.xInner" 
+              v-for="(point, i) in svgPoints2.xInner" 
               :key="'point'+i"
               :class="['fronds', frondTest(i), state.selectedColor]"
-              :d="`M ${svgPoints.xInner[i]} ${svgPoints.yInner[i]}
-              Q ${svgPoints.xMid[i]} ${svgPoints.yMid[i]}
-              ${svgPoints.xOuter[i]} ${svgPoints.yOuter[i]}`"
+              :d="`M ${svgPoints.xInner[i]} ${svgPoints2.yInner[i]}
+              Q ${svgPoints2.xMid[i]} ${svgPoints2.yMid[i]}
+              ${svgPoints2.xOuter[i]} ${svgPoints2.yOuter[i]}`"
             />
           </g>
           <!-- ellipses -->
@@ -153,13 +154,13 @@
           <ellipse id="mid2" class="ellipse mid"
             cx="0"
             cy="0"
-            rx="60"
-            ry="60" />
+            :rx="svg.frondLength2.value /2"
+            :ry="svg.frondLength2.value /2" />
           <ellipse id="outer2" class="ellipse outer"
             :cx="parseInt(svg.frondSway.value)"
             :cy="parseInt(svg.frondDroop.value)"
-            rx="100"
-            ry="100" />
+            :rx="svg.frondLength2.value"
+            :ry="svg.frondLength2.value" />
         </g>
         </svg>
       </div>
@@ -204,37 +205,40 @@ const state = reactive({
 const svg = reactive({
   width:                { value: 500, min: 300, max: 750, display: false},
   height:               { value: 500, min: 300, max: 750, display: false},
-  marginBottom:         { group: 'position', label: "Bottom Margin", value:50, min:0, max: 200, display: true },
+  marginBottom:         { group: 'Position', label: "Bottom Margin", value:30, min:0, max: 200, display: true },
+  midOffset:            { group: 'Position', label: "Horizontal Offset", value:42, min:-100, max: 100, display: true },
   noBranches:           { group: "Trunk", label: "Number of Branches", value: 2, min: 1, max: 2, display: true },
-  trunkSwayMid:         { group: 'Trunk', label:"Trunk Sway - Mid", value:5, min:-100, max: 100, display: true },
+  trunkSwayMid:         { group: 'Trunk', label:"Trunk Sway - Mid", value:0, min:-100, max: 100, display: true },
   trunkSwayTop:         { group: 'Trunk', label:"Trunk Sway - Top", value:-10, min:-100, max: 100, display: true },
   trunkHeight:          { group: 'Trunk', label:"Trunk Height", value:55, min:25, max: 350, display: true },
   trunkWidth:           { group: 'Trunk',  label: "Trunk Width", value:40, min:1, max: 100, display: true },
-  trunkLeftMid:         { group: 'Trunk - Left', label:"Trunk Sway - Mid", value:-50, min:-100, max: 100, display: true },
-  trunkLeftTop:         { group: 'Trunk - Left', label:"Trunk Sway - Top", value:-50, min:-100, max: 100, display: true },
+  trunkLeftMid:         { group: 'Trunk - Left', label:"Trunk Sway - Mid", value:-90, min:-150, max: 100, display: true },
+  trunkLeftTop:         { group: 'Trunk - Left', label:"Trunk Sway - Top", value:-90, min:-150, max: 100, display: true },
   trunkLeftHeight:      { group: 'Trunk - Left', label:"Trunk Height", value:100, min:25, max: 350, display: true },
-  trunkRightMid:        { group: 'Trunk - Right', label:"Trunk Sway - Mid", value:50, min:-100, max: 100, display: true },
+  trunkRightMid:        { group: 'Trunk - Right', label:"Trunk Sway - Mid", value:60, min:-100, max: 100, display: true },
   trunkRightTop:        { group: 'Trunk - Right', label:"Trunk Sway - Top", value:50, min:-100, max: 100, display: true },
-  trunkRightHeight:     { group: 'Trunk - Right', label:"Trunk Height", value:100, min:25, max: 350, display: true },
+  trunkRightHeight:     { group: 'Trunk - Right', label:"Trunk Height", value:120, min:25, max: 350, display: true },
   spikeVisible:         { group: 'Spike & Flower', label: 'Show Spike', value: 0, min: 0, max: 1, display: true },
   spikeSwayMid:         { group: 'Spike & Flower', label: "Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
   spikeSwayTop:         { group: 'Spike & Flower', label: "Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
   spikeHeight:          { group: 'Spike & Flower', label: "Spike Height", value:250, min:50, max: 350, display: true },
   spikeSecondVisible:   { group: 'Spike & Flower 2', label: 'Show Spike', value: 1, min: 0, max: 1, display: true },
-  spikeSecondSwayMid:   { group: 'Spike & Flower 2', label: "Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
-  spikeSecondSwayTop:   { group: 'Spike & Flower 2', label: "Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
+  spikeSecondSwayMid:   { group: 'Spike & Flower 2', label: "Spike Sway - Mid", value:-10, min:-100, max: 100, display: true },
+  spikeSecondSwayTop:   { group: 'Spike & Flower 2', label: "Spike Sway - Top", value: 10, min:-100, max: 100, display: true },
   spikeSecondHeight:    { group: 'Spike & Flower 2', label: "Spike Height", value:250, min:50, max: 350, display: true },
   flowerVisible:        { group: 'Spike & Flower', label: "Show Flower", value: 1, min: 0, max: 1, display: true},
   flowerStart:          { group: 'Spike & Flower', label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
   flowerStop:           { group: 'Spike & Flower', label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
   flowerSecondVisible:  { group: 'Spike & Flower 2', label: "Show Flower", value: 1, min: 0, max: 1, display: true},
-  flowerSecondStart:    { group: 'Spike & Flower 2', label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
-  flowerSecondStop:     { group: 'Spike & Flower 2',label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
+  flowerSecondStart:    { group: 'Spike & Flower 2', label:"Flower Start", value:0.25, min: 0, max: 1, step: 0.05, display: true },
+  flowerSecondStop:     { group: 'Spike & Flower 2',label:"Flower Stop", value:1, min: 0, max: 1, step: 0.05, display: true },
   noFronds:             { group: 'Fronds', label:"Number of Fronds", value:300, min:30, max: 720, display: false },
-  frondLength:          { group: 'Fronds', label: "Frond Length", value: 75, min: 10, max: 200, display: true },
+  frondLength:          { group: 'Fronds', label: "Frond Length", value: 100, min: 10, max: 200, display: true },
+  frondLength2:         { group: 'Fronds', label: "Frond Length 2", value: 60, min: 10, max: 200, display: true },
   frondDroop:           { group: 'Fronds', label:"Frond Droop", value:15, min:0, max: 50, display: true },
   frondSway:            { group: 'Fronds', label:"Frond Sway", value:0, min:-50, max: 50, display: true },
-  frondRandom:          { group: 'Fronds', label:"Frond Randomness", value:20, min:1, max: 100, display: true },
+  frondRandom:          { group: 'Fronds', label:"Frond Randomness", value:40, min:1, max: 100, display: true },
+  frondRandom2:         { group: 'Fronds', label:"Frond Randomness 2", value:15, min:1, max: 100, display: true },
   showGuideCircles:     { label:"DEV Show Guide Circles", value:0, min: 0, max: 1, display: false },
 })
 // a list of groups above to save putting below code in template
@@ -263,12 +267,12 @@ watch(noBranches, (n, o) => {
 })
 // swap the transform:translate from main branch to left branch depending on number of branches selected
 const targetTrunk = computed(() => {
-  if (svg.noBranches.value == '2') return `translate(${xTrunkLeftTop.value} ${yTrunkLeftTop.value})`
-  return `translate(${xTrunkTop.value} ${yTrunkTop.value})`
+  if (svg.noBranches.value == '2') return `translate(${xTrunkLeftTop.value} ${yTrunkLeftTop.value - parseInt(svg.trunkWidth.value/2)})`
+  return `translate(${xTrunkTop.value} ${yTrunkTop.value - parseInt(svg.trunkWidth.value)})`
 })
 const targetTrunk2 = computed(() => {
-  if (svg.noBranches.value == '2') return `translate(${xTrunkRightTop.value} ${yTrunkRightTop.value})`
-  return `translate(${xTrunkTop.value} ${yTrunkTop.value})`
+  if (svg.noBranches.value == '2') return `translate(${xTrunkRightTop.value} ${yTrunkRightTop.value - parseInt(svg.trunkWidth.value/2)})`
+  return `translate(${xTrunkTop.value} ${yTrunkTop.value})` // shouldn't get used?
 })
 
 
@@ -277,6 +281,18 @@ const targetTrunk2 = computed(() => {
 // const { marginBottom } = toRefs(svg)
 // toRefs(Object.keys(svg));
 const svgPoints = reactive({
+  xInner: Array(svg.noFronds.value).fill(0),
+  yInner: Array(svg.noFronds.value).fill(0),
+  xMid: Array(svg.noFronds.value).fill(0),
+  yMid: Array(svg.noFronds.value).fill(0),
+  xOuter: Array(svg.noFronds.value).fill(0),
+  yOuter: Array(svg.noFronds.value).fill(0),
+  xMidRandom: Array(svg.noFronds.value).fill(0),
+  yMidRandom: Array(svg.noFronds.value).fill(0),
+  xOuterRandom: Array(svg.noFronds.value).fill(0),
+  yOuterRandom: Array(svg.noFronds.value).fill(0),
+})
+const svgPoints2 = reactive({
   xInner: Array(svg.noFronds.value).fill(0),
   yInner: Array(svg.noFronds.value).fill(0),
   xMid: Array(svg.noFronds.value).fill(0),
@@ -314,7 +330,7 @@ const svgShapes = reactive({
 /**
  * computed values
  */
-const xMid = computed(() => { return svg.width.value / 2 })
+const xMid = computed(() => { return svg.width.value / 2 + parseInt(svg.midOffset.value)})
 const yMid = computed(() => { return svg.height.value / 2 })
 const trunkMid = computed(() => { return svg.trunkHeight.value / 2 })
 const trunkLeftMid = computed(() => { return svg.trunkLeftHeight.value / 2 })
@@ -329,7 +345,7 @@ const xTrunkLeftTop = computed(() => { return xTrunkTop.value + parseInt(svg.tru
 const yTrunkLeftTop = computed(() => { return svg.height.value - svg.marginBottom.value - svg.trunkHeight.value - svg.trunkLeftHeight.value })
 const xTrunkRightMid = computed(() => { return xTrunkTop.value + parseInt(svg.trunkRightMid.value) })
 const yTrunkRightMid = computed(() => { return svg.height.value - svg.marginBottom.value - svg.trunkHeight.value - trunkRightMid.value })
-const xTrunkRightTop = computed(() => { return xTrunkTop.value + parseInt(svg.trunkRightTop.value) })
+const xTrunkRightTop = computed(() => { return xTrunkTop.value + parseInt(svg.trunkRightTop.value)  })
 const yTrunkRightTop = computed(() => { return svg.height.value - svg.marginBottom.value - svg.trunkHeight.value- svg.trunkRightHeight.value })
 const spikeMid = computed(() => { return svg.spikeHeight.value / 2 })
 const xSpikeMid = computed(() => { return svg.spikeSwayMid.value})
@@ -381,7 +397,7 @@ function generateFronds() {
   let period = { inner: undefined, mid: undefined, outer: undefined }
   let element = { inner: undefined, mid: undefined, outer: undefined }
   // find the distance between points for each elipse
-  const elipses = ['inner','mid','outer']
+  const elipses = ['inner', 'mid', 'outer', 'inner2', 'mid2', 'outer2']
   elipses.forEach((id, i) => {
     element[id] = document.getElementById(id)
     try{
@@ -401,13 +417,25 @@ function generateFronds() {
           svgPoints.xInner[i] = svgPoint.x; // doesn't get random
           svgPoints.yInner[i] = svgPoint.y;
           break;
+        case 'inner2':
+          svgPoints2.xInner[i] = svgPoint.x; // doesn't get random
+          svgPoints2.yInner[i] = svgPoint.y;
+          break;
         case 'mid':
           svgPoints.xMid[i] = svgPoint.x + svgPoints.xMidRandom[i];
           svgPoints.yMid[i] = svgPoint.y + svgPoints.yMidRandom[i];
           break;
+        case 'mid2':
+          svgPoints2.xMid[i] = svgPoint.x + svgPoints2.xMidRandom[i];
+          svgPoints2.yMid[i] = svgPoint.y + svgPoints2.yMidRandom[i];
+          break;
         case 'outer':
           svgPoints.xOuter[i] = svgPoint.x + svgPoints.xOuterRandom[i];
           svgPoints.yOuter[i] = svgPoint.y + svgPoints.yOuterRandom[i];
+          break;
+        case 'outer2':
+          svgPoints2.xOuter[i] = svgPoint.x + svgPoints2.xOuterRandom[i];
+          svgPoints2.yOuter[i] = svgPoint.y + svgPoints2.yOuterRandom[i];
           break;
         default:    
       }
@@ -461,10 +489,10 @@ function generateFlower(spike, start, stop) {
  *  */
 function frondTest(i) {
   const n = svg.noFronds.value;
-  if (parseInt(i) <= parseInt(n * 1/8)) return 'mid'
-  if (parseInt(i) <= parseInt(n * 3/8)) return 'lower'
-  if (parseInt(i) <= parseInt(n * 5/8)) return 'mid'
-  if (parseInt(i) <= parseInt(n * 7/8)) return 'upper'
+  if (parseInt(i) <= parseInt(n * 1/16)) return 'mid'
+  if (parseInt(i) <= parseInt(n * 7/16)) return 'lower'
+  if (parseInt(i) <= parseInt(n * 9/16)) return 'mid'
+  if (parseInt(i) <= parseInt(n * 15/16)) return 'upper'
   return 'mid'
 }
 // watchEffects call the function once, track the relevant variables, then call it again when they update
@@ -476,7 +504,9 @@ setTimeout(() => {
       svg.noBranches.value,
       svg.frondDroop.value,
       svg.frondSway.value,
-      svg.frondLength.value]
+      svg.frondLength.value,
+      svg.frondRandom.value,
+      svg.frondRandom2.value]
     generateFronds();
   })
   watchEffect(() => {
@@ -510,6 +540,10 @@ function randomise() {
   svgPoints.yMidRandom = svgPoints.yMidRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom.value))
   svgPoints.xOuterRandom = svgPoints.xOuterRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom.value))
   svgPoints.yOuterRandom = svgPoints.yOuterRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom.value))
+  svgPoints2.xMidRandom = svgPoints2.xMidRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom2.value))
+  svgPoints2.yMidRandom = svgPoints2.yMidRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom2.value))
+  svgPoints2.xOuterRandom = svgPoints2.xOuterRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom2.value))
+  svgPoints2.yOuterRandom = svgPoints2.yOuterRandom.map(_ => (Math.random() - 0.5)*parseInt(svg.frondRandom2.value))
   generateFronds()
 }
 /**
@@ -615,13 +649,13 @@ div.checkbox * {
 }
 #spike,
 #spike2 {
-  stroke: olive;
+  stroke: rgb(63, 46, 71);
   fill: none;
   stroke-width: 5px;
   stroke-linecap: round;
 }
 .flower {
-  stroke: brown;
+  stroke: rgb(235, 189, 91);
   fill: none;
   stroke-width: 15px;
   stroke-linecap: round;
