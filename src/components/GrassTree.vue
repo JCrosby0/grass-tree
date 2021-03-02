@@ -9,13 +9,14 @@
     <!-- CONTROL PANEL -->
     <div class="controls">
       <h6>Dimensions</h6>
-      <div v-for="category in Object.values.filter(v => v.group)" :key="'category'+category">
-        <h6>{{category.group}}</h6>
-        <div v-for="key in Object.values(svg).filter(k => k.group === category.group && k.display === true)" :key="key" class="item">
+      <div v-for="category in categories" :key="'category'+category">
+        <h4 class="left">{{category}}</h4>
+        <div v-for="key in Object.values(svg).filter(k => k.group === category && k.display === true)" :key="key" class="item">
           <p>{{key.label}}<span style='{color: red}' v-if="refreshRequired.includes(key)">*</span>
             <input v-model="key.value" type="range" :min="key.min" :max="key.max" :step="key.step">
           </p>
         </div>
+      </div>
       <button @click="randomise">Randomise Fronds</button>
       <br>
     </div>
@@ -27,11 +28,6 @@
         <input type="radio" :id="opt.value" name="color" :value="opt.value" v-model="state.selectedColor">
         <label :for="opt.value">{{opt.name}}</label><br>
       </div>
-      <!-- <h6>Animation</h6>
-      <div class="radio" v-for="opt in animStyle" :key="opt+'anim'">
-        <input type="radio" :id="opt.value" name="anim" :value="opt.value" v-model="state.selectedAnim">
-        <label :for="opt.value">{{opt.name}}</label><br>
-      </div> -->
       <h6>Background Shapes</h6>
         <div class="checkbox" v-for="(opt, i) in shapeStyle" :key="opt+'color'">
           <input type="checkbox" :id="opt.value" name="shape" :value="opt.value" v-model="state.selectedShape[i]">
@@ -72,96 +68,44 @@
           </g>
 
         </g>
+        <!-- TRUNK GROUP -->
         <g>
           <!-- trunk -->
           <path :class="['trunk', state.selectedColor]"
             :style="svgPaths" 
-            :d="svgPaths['--trunk']">
-            <!-- <animate
-              v-if="['dance'].includes(state.selectedAnim)"
-              attributeName="d"
-              dur="1440ms"
-              repeatCount="indefinite"
-              keyTimes="0;
-                       .0625;
-                       .208333333;
-                       .3125;
-                       .395833333;
-                       .645833333;
-                       .833333333;
-                       1"
-              calcMode="spline"
-              keySplines="0,0,1,1;
-                         .42,0,.58,1;
-                         .42,0,1,1;
-                         0,0,.58,1;
-                         .42,0,.58,1;
-                         .42,0,.58,1;
-                         .42,0,.58,1"
-              :values="`${svgPaths['--trunk']}; ${svgPaths['--trunkAlt']};`"
-            />-->
+            :d="svgPaths['--trunk']">          
+          </path>
+          <!-- trunk left -->
+          <path v-if="svg.noBranches.value == '2'" :class="['trunk', state.selectedColor]"
+            :style="svgPaths" 
+            :d="svgPaths['--trunkLeft']">          
+          </path>
+          <!-- trunk right -->
+          <path v-if="svg.noBranches.value == '2'" :class="['trunk', state.selectedColor]"
+            :style="svgPaths" 
+            :d="svgPaths['--trunkRight']">          
           </path>
         </g>
-        <g :transform="`translate(${xTrunkTop} ${yTrunkTop})`">
-          <!-- spike -->
-          <path id="spike" :class="state.selectedColor" :style="svgPaths" :d="svgPaths['--spike']">
-              <animateTransform
-                v-if="['windy', 'gusty'].includes(state.selectedAnim)"
-                id="s1"
-                attributeName="transform"
-                attributeType="XML"
-                type="rotate"
-                begin="0;s2.end"
-              :from="state.selectedAnim === 'windy' ? '0' : '50'"
-                :to="state.selectedAnim === 'windy' ? '10' : '30'"
-                :dur="state.selectedAnim === 'windy' ? '5s' : '1s'" />
-              <animateTransform
-                v-if="['windy', 'gusty'].includes(state.selectedAnim)"
-                id="s2"
-                attributeName="transform"
-                attributeType="XML"
-                type="rotate"
-                begin="s1.end"
-              :from="state.selectedAnim === 'windy' ? '10' : '30'"
-                :to="state.selectedAnim === 'windy' ? '0' : '50'"
-                :dur="state.selectedAnim === 'windy' ? '5s' : '1s'" />
-            </path>
+        <!-- spike/flower/fronds -- group 1 -->
+        <g :transform="targetTrunk">
+          <!-- spike/flower is visible -->
+          <g v-show="svg.spikeVisible.value == '1'">
+            <!-- spike -->
+            <path id="spike" :class="state.selectedColor" :d="svgPaths['--spike']" />
             <!-- flower -->
-          <path :class="['flower', state.selectedColor]" :style="svgPaths" :d="svgPaths['--flower']">
-              <animateTransform
-                v-if="['windy', 'gusty'].includes(state.selectedAnim)"
-                id="f1"
-                attributeName="transform"
-                attributeType="XML"
-                type="rotate"
-                begin="0;f2.end"
-                :from="state.selectedAnim === 'windy' ? '0' : '50'"
-                :to="state.selectedAnim === 'windy' ? '10' : '30'"
-                :dur="state.selectedAnim === 'windy' ? '5s' : '1s'" />
-              <animateTransform
-                v-if="['windy', 'gusty'].includes(state.selectedAnim)"
-                id="f2"
-                attributeName="transform"
-                attributeType="XML"
-                type="rotate"
-                begin="f1.end"
-            :from="state.selectedAnim === 'windy' ? '10' : '30'"
-                :to="state.selectedAnim === 'windy' ? '0' : '50'"
-                :dur="state.selectedAnim === 'windy' ? '5s' : '1s'" />
-            </path>
-        </g>
-        <g :transform="`translate(${xTrunkTop} ${yTrunkTop})`">
-          <!-- fronds -->
-          <path 
-            v-for="(point, i) in svgPoints.xInner" 
-            :key="'point'+i"
-            :class="['fronds', frondTest(i), state.selectedColor]"
-            :d="`M ${svgPoints.xInner[i]} ${svgPoints.yInner[i]}
-            Q ${svgPoints.xMid[i]} ${svgPoints.yMid[i]}
-            ${svgPoints.xOuter[i]} ${svgPoints.yOuter[i]}`"
-          />
-        </g>
-        <g :transform="`translate(${xTrunkTop} ${yTrunkTop})`">
+            <path v-if="svg.flowerVisible.value == '1'" :class="['flower', state.selectedColor]" :d="svgPaths['--flower']" />
+          </g>
+          <!-- fronds grouped for collapsing in DOM view-->
+          <g>
+            <path 
+              v-for="(point, i) in svgPoints.xInner" 
+              :key="'point'+i"
+              :class="['fronds', frondTest(i), state.selectedColor]"
+              :d="`M ${svgPoints.xInner[i]} ${svgPoints.yInner[i]}
+              Q ${svgPoints.xMid[i]} ${svgPoints.yMid[i]}
+              ${svgPoints.xOuter[i]} ${svgPoints.yOuter[i]}`"
+            />
+          </g>
           <!-- ellipses -->
           <ellipse id="inner" class="ellipse inner" :style="`{stroke: ${svg.showGuideCircles.value === 1 ? '1px red' : '0'}}`"
             cx="0"
@@ -171,14 +115,52 @@
           <ellipse id="mid" class="ellipse mid"
             cx="0"
             cy="0"
+            :rx="svg.frondLength.value/2"
+            :ry="svg.frondLength.value/2" />
+          <ellipse id="outer" class="ellipse outer"
+            :cx="parseInt(svg.frondSway.value)"
+            :cy="parseInt(svg.frondDroop.value)"
+            :rx="svg.frondLength.value"
+            :ry="svg.frondLength.value" />
+        </g>
+        <!-- spike/flower/fronds 2 -->
+        <g v-if="svg.noBranches.value == '2'" 
+          :transform="targetTrunk2">
+          <!-- spike/flower is visible -->
+          <g v-show="svg.spikeSecondVisible.value == '1'">
+            <!-- spike -->
+            <path id="spike2" :class="state.selectedColor" :d="svgPaths['--spike2']" />
+              <!-- flower -->
+            <path v-if="svg.flowerSecondVisible.value == '1'" :class="['flower', state.selectedColor]" :d="svgPaths['--flower2']" />
+          </g>
+          <!-- fronds (grouped for collapsing in DOM view)-->
+          <g>
+            <path 
+              v-for="(point, i) in svgPoints.xInner" 
+              :key="'point'+i"
+              :class="['fronds', frondTest(i), state.selectedColor]"
+              :d="`M ${svgPoints.xInner[i]} ${svgPoints.yInner[i]}
+              Q ${svgPoints.xMid[i]} ${svgPoints.yMid[i]}
+              ${svgPoints.xOuter[i]} ${svgPoints.yOuter[i]}`"
+            />
+          </g>
+          <!-- ellipses -->
+          <ellipse id="inner2" class="ellipse inner" :style="`{stroke: ${svg.showGuideCircles.value === 1 ? '1px red' : '0'}}`"
+            cx="0"
+            cy="0"
+            rx="1"
+            ry="1" />
+          <ellipse id="mid2" class="ellipse mid"
+            cx="0"
+            cy="0"
             rx="60"
             ry="60" />
-          <ellipse id="outer" class="ellipse outer"
+          <ellipse id="outer2" class="ellipse outer"
             :cx="parseInt(svg.frondSway.value)"
             :cy="parseInt(svg.frondDroop.value)"
             rx="100"
             ry="100" />
-          </g>
+        </g>
         </svg>
       </div>
     </div>
@@ -187,7 +169,7 @@
 </template>
 
 <script setup>
-import { defineProps, reactive, computed, watchEffect, toRefs } from 'vue'
+import { defineProps, reactive, computed, watchEffect, toRefs, watch } from 'vue'
 
 /** static values */
 const colorStyle = [
@@ -223,35 +205,73 @@ const svg = reactive({
   width:                { value: 500, min: 300, max: 750, display: false},
   height:               { value: 500, min: 300, max: 750, display: false},
   marginBottom:         { group: 'position', label: "Bottom Margin", value:50, min:0, max: 200, display: true },
-  noBranches:           { group: "Trunk", label: "Number of Branches", value: 1, min: 1, max: 2, display: true },
-  trunkSwayMid:         { group: 'Trunk', label:"Trunk Sway - Mid", value:-10, min:-100, max: 100, display: true },
-  trunkSwayTop:         { group: 'Trunk', label:"Trunk Sway - Top", value:2, min:-100, max: 100, display: true },
-  trunkHeight:          { group: 'Trunk', label:"Trunk Height", value:150, min:50, max: 350, display: true },
+  noBranches:           { group: "Trunk", label: "Number of Branches", value: 2, min: 1, max: 2, display: true },
+  trunkSwayMid:         { group: 'Trunk', label:"Trunk Sway - Mid", value:5, min:-100, max: 100, display: true },
+  trunkSwayTop:         { group: 'Trunk', label:"Trunk Sway - Top", value:-10, min:-100, max: 100, display: true },
+  trunkHeight:          { group: 'Trunk', label:"Trunk Height", value:55, min:25, max: 350, display: true },
   trunkWidth:           { group: 'Trunk',  label: "Trunk Width", value:40, min:1, max: 100, display: true },
-  trunkLeftMid:         { group: 'Trunk - Left', label:"Trunk Sway - Mid", value:-10, min:-100, max: 100, display: true },
-  trunkLeftTop:         { group: 'Trunk - Left', label:"Trunk Sway - Top", value:2, min:-100, max: 100, display: true },
-  trunkLeftHeight:      { group: 'Trunk - Left', label:"Trunk Height", value:150, min:50, max: 350, display: true },
-  trunkRightMid:        { group: 'Trunk - Right', label:"Trunk Sway - Mid", value:-10, min:-100, max: 100, display: true },
-  trunkRightTop:        { group: 'Trunk - Right', label:"Trunk Sway - Top", value:2, min:-100, max: 100, display: true },
-  trunkRightHeight:     { group: 'Trunk - Right', label:"Trunk Height", value:150, min:50, max: 350, display: true },
-  spikeSwayMid:         { group: 'Spike', label: "Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
-  spikeSwayTop:         { group: 'Spike', label: "Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
-  spikeHeight:          { group: 'Spike', label: "Spike Height", value:250, min:50, max: 350, display: true },
-  spikeSecondSwayMid:   { group: 'Spike 2', group: 'Spike', label: "Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
-  spikeSecondSwayTop:   { group: 'Spike 2', label: "Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
-  spikeSecondHeight:    { group: 'Spike 2', label: "Spike Height", value:250, min:50, max: 350, display: true },
-  flowerStart:          { group: 'Flower', label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
-  flowerStop:           { group: 'Flower', label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
-  flowerVisible:        { group: 'Flower', label: "Show Flower", type: 'boolean', value: true, display: true},
-  flowerSecondStart:    { group: 'Flower 2', label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
-  flowerSecondStop:     { group: 'Flower 2',label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
-  flowerSecondVisible:  { group: 'Flower 2', label: "Show Flower", type: 'boolean', value: true, display: true},
+  trunkLeftMid:         { group: 'Trunk - Left', label:"Trunk Sway - Mid", value:-50, min:-100, max: 100, display: true },
+  trunkLeftTop:         { group: 'Trunk - Left', label:"Trunk Sway - Top", value:-50, min:-100, max: 100, display: true },
+  trunkLeftHeight:      { group: 'Trunk - Left', label:"Trunk Height", value:100, min:25, max: 350, display: true },
+  trunkRightMid:        { group: 'Trunk - Right', label:"Trunk Sway - Mid", value:50, min:-100, max: 100, display: true },
+  trunkRightTop:        { group: 'Trunk - Right', label:"Trunk Sway - Top", value:50, min:-100, max: 100, display: true },
+  trunkRightHeight:     { group: 'Trunk - Right', label:"Trunk Height", value:100, min:25, max: 350, display: true },
+  spikeVisible:         { group: 'Spike & Flower', label: 'Show Spike', value: 0, min: 0, max: 1, display: true },
+  spikeSwayMid:         { group: 'Spike & Flower', label: "Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
+  spikeSwayTop:         { group: 'Spike & Flower', label: "Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
+  spikeHeight:          { group: 'Spike & Flower', label: "Spike Height", value:250, min:50, max: 350, display: true },
+  spikeSecondVisible:   { group: 'Spike & Flower 2', label: 'Show Spike', value: 1, min: 0, max: 1, display: true },
+  spikeSecondSwayMid:   { group: 'Spike & Flower 2', label: "Spike Sway - Mid", value:-15, min:-100, max: 100, display: true },
+  spikeSecondSwayTop:   { group: 'Spike & Flower 2', label: "Spike Sway - Top", value: -5, min:-100, max: 100, display: true },
+  spikeSecondHeight:    { group: 'Spike & Flower 2', label: "Spike Height", value:250, min:50, max: 350, display: true },
+  flowerVisible:        { group: 'Spike & Flower', label: "Show Flower", value: 1, min: 0, max: 1, display: true},
+  flowerStart:          { group: 'Spike & Flower', label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
+  flowerStop:           { group: 'Spike & Flower', label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
+  flowerSecondVisible:  { group: 'Spike & Flower 2', label: "Show Flower", value: 1, min: 0, max: 1, display: true},
+  flowerSecondStart:    { group: 'Spike & Flower 2', label:"Flower Start", value:0.5, min: 0, max: 1, step: 0.05, display: true },
+  flowerSecondStop:     { group: 'Spike & Flower 2',label:"Flower Stop", value:0.9, min: 0, max: 1, step: 0.05, display: true },
   noFronds:             { group: 'Fronds', label:"Number of Fronds", value:300, min:30, max: 720, display: false },
+  frondLength:          { group: 'Fronds', label: "Frond Length", value: 75, min: 10, max: 200, display: true },
   frondDroop:           { group: 'Fronds', label:"Frond Droop", value:15, min:0, max: 50, display: true },
   frondSway:            { group: 'Fronds', label:"Frond Sway", value:0, min:-50, max: 50, display: true },
   frondRandom:          { group: 'Fronds', label:"Frond Randomness", value:20, min:1, max: 100, display: true },
   showGuideCircles:     { label:"DEV Show Guide Circles", value:0, min: 0, max: 1, display: false },
 })
+// a list of groups above to save putting below code in template
+const categories = computed(() => {
+  return Object.values(svg)
+    .filter(v => v.group && v.display == true)
+    .reduce((acc, val, i, []) => {
+      !acc.includes(val.group) && acc.push(val.group)
+      return acc
+    }, [])
+})
+// update shown categories depending on inputs. could be done as computed, but this way keeps inputs together
+
+const noBranches = computed(() => svg.noBranches.value) // cannot watch within an object
+watch(noBranches, (n, o) => {
+  // categories relevant to two branches
+  const options = [
+    'trunkLeftMid', 'trunkLeftTop', 'trunkLeftHeight', 
+    'trunkRightMid', 'trunkRightTop', 'trunkRightHeight',
+    'spikeSecondSwayMid', 'spikeSecondSwayTop', 'spikeSecondHeight', 'spikeSecondVisible',
+    'flowerSecondStart', 'flowerSecondStop', 'flowerSecondVisible'];
+  options.forEach(option => svg[option].display = (n == "2"))
+  svg.trunkHeight.value = parseInt((svg.trunkHeight.value) * ((n == "2") ? 0.5 : 2))
+  svg.frondLength.value = parseInt((svg.frondLength.value) * ((n == "2") ? 0.75 : 1.3333))
+  
+})
+// swap the transform:translate from main branch to left branch depending on number of branches selected
+const targetTrunk = computed(() => {
+  if (svg.noBranches.value == '2') return `translate(${xTrunkLeftTop.value} ${yTrunkLeftTop.value})`
+  return `translate(${xTrunkTop.value} ${yTrunkTop.value})`
+})
+const targetTrunk2 = computed(() => {
+  if (svg.noBranches.value == '2') return `translate(${xTrunkRightTop.value} ${yTrunkRightTop.value})`
+  return `translate(${xTrunkTop.value} ${yTrunkTop.value})`
+})
+
+
 
 // not needed if watchEffect works
 // const { marginBottom } = toRefs(svg)
@@ -276,6 +296,14 @@ const svgFlower = reactive({
   xFlowerBot: 245,
   yFlowerBot: 160
 })
+const svgFlower2 = reactive({
+  xFlowerTop: 242,
+  yFlowerTop: 70,
+  xFlowerMid: 246,
+  yFlowerMid: 100,
+  xFlowerBot: 245,
+  yFlowerBot: 160
+})
 
 const svgShapes = reactive({
   orange: `125,125 375,125 375,375 125,375`,
@@ -289,15 +317,30 @@ const svgShapes = reactive({
 const xMid = computed(() => { return svg.width.value / 2 })
 const yMid = computed(() => { return svg.height.value / 2 })
 const trunkMid = computed(() => { return svg.trunkHeight.value / 2 })
+const trunkLeftMid = computed(() => { return svg.trunkLeftHeight.value / 2 })
+const trunkRightMid = computed(() => { return svg.trunkRightHeight.value / 2 })
 const xTrunkMid = computed(() => { return xMid.value - svg.trunkSwayMid.value })
 const yTrunkMid = computed(() => { return svg.height.value - svg.marginBottom.value - trunkMid.value })
 const xTrunkTop = computed(() => { return xMid.value + parseInt(svg.trunkSwayTop.value) })
 const yTrunkTop = computed(() => { return svg.height.value - svg.marginBottom.value - svg.trunkHeight.value })
+const xTrunkLeftMid = computed(() => { return xTrunkTop.value + parseInt(svg.trunkLeftMid.value) })
+const yTrunkLeftMid = computed(() => { return svg.height.value - svg.marginBottom.value - svg.trunkHeight.value - trunkLeftMid.value })
+const xTrunkLeftTop = computed(() => { return xTrunkTop.value + parseInt(svg.trunkLeftTop.value) })
+const yTrunkLeftTop = computed(() => { return svg.height.value - svg.marginBottom.value - svg.trunkHeight.value - svg.trunkLeftHeight.value })
+const xTrunkRightMid = computed(() => { return xTrunkTop.value + parseInt(svg.trunkRightMid.value) })
+const yTrunkRightMid = computed(() => { return svg.height.value - svg.marginBottom.value - svg.trunkHeight.value - trunkRightMid.value })
+const xTrunkRightTop = computed(() => { return xTrunkTop.value + parseInt(svg.trunkRightTop.value) })
+const yTrunkRightTop = computed(() => { return svg.height.value - svg.marginBottom.value - svg.trunkHeight.value- svg.trunkRightHeight.value })
 const spikeMid = computed(() => { return svg.spikeHeight.value / 2 })
 const xSpikeMid = computed(() => { return svg.spikeSwayMid.value})
 const ySpikeMid = computed(() => { return -svg.spikeHeight.value / 2 })
 const xSpikeTop = computed(() => { return svg.spikeSwayTop.value })
 const ySpikeTop = computed(() => { return -svg.spikeHeight.value })
+const spikeSecondMid = computed(() => { return svg.spikeSecondHeight.value / 2 })
+const xSpikeSecondMid = computed(() => { return svg.spikeSecondSwayMid.value})
+const ySpikeSecondMid = computed(() => { return -svg.spikeSecondHeight.value / 2 })
+const xSpikeSecondTop = computed(() => { return svg.spikeSecondSwayTop.value })
+const ySpikeSecondTop = computed(() => { return -svg.spikeSecondHeight.value })
 
 const polyOrangeTopLeft = computed(() => { return `${Math.random() * 250},${Math.random() * 250}`})
 const polyOrangeTopRight = computed(() => { return `${Math.random() * 250 + 250},${Math.random() * 250}`})
@@ -312,10 +355,14 @@ const svgPaths = computed(() => {
   // the --strokeWidth is being used in css as a variable
   return {
     '--trunk': `M ${xMid.value} ${svg.height.value - svg.marginBottom.value} Q ${xTrunkMid.value} ${yTrunkMid.value} ${xTrunkTop.value} ${yTrunkTop.value}`,
+    '--trunkLeft': `M ${xTrunkTop.value} ${yTrunkTop.value} Q ${xTrunkLeftMid.value} ${yTrunkLeftMid.value} ${xTrunkLeftTop.value} ${yTrunkLeftTop.value}`,
+    '--trunkRight': `M ${xTrunkTop.value} ${yTrunkTop.value} Q ${xTrunkRightMid.value} ${yTrunkRightMid.value} ${xTrunkRightTop.value} ${yTrunkRightTop.value}`,
     // '--trunkAlt': `M ${xMid.value} ${svg.height.value - svg.marginBottom.value} Q ${svg.width.value - xTrunkMid.value} ${yTrunkMid.value} ${svg.width.value - xTrunkTop.value} ${yTrunkTop.value}`,
     '--spike': `M 0 0 Q ${xSpikeMid.value} ${ySpikeMid.value} ${xSpikeTop.value} ${ySpikeTop.value}`,
+    '--spike2': `M 0 0 Q ${xSpikeSecondMid.value} ${ySpikeSecondMid.value} ${xSpikeSecondTop.value} ${ySpikeSecondTop.value}`,
     // '--spikeAlt': `M 0 0 Q ${svg.width.value - xSpikeMid.value} ${ySpikeMid.value} ${svg.width.value - xSpikeTop.value} ${ySpikeTop.value}`,
     '--flower': `M ${svgFlower.xFlowerBot} ${svgFlower.yFlowerBot} Q ${svgFlower.xFlowerMid} ${svgFlower.yFlowerMid} ${svgFlower.xFlowerTop} ${svgFlower.yFlowerTop}`,
+    '--flower2': `M ${svgFlower2.xFlowerBot} ${svgFlower2.yFlowerBot} Q ${svgFlower2.xFlowerMid} ${svgFlower2.yFlowerMid} ${svgFlower2.xFlowerTop} ${svgFlower2.yFlowerTop}`,
     // '--flowerAlt': `M ${svgFlower.xFlowerBot} ${svgFlower.yFlowerBot} Q ${svg.width.value - svgFlower.xFlowerMid} ${svgFlower.yFlowerMid} ${svg.width.value - svgFlower.xFlowerTop} ${svgFlower.yFlowerTop}`,
     '--strokeWidth': `${svg.trunkWidth.value}px`,
     '--animationName': state.selectedAnim,
@@ -374,21 +421,32 @@ function generateFronds() {
  * generateFlower()
  * generate the flower along the spike
  */
-function generateFlower() {
+function generateFlower(spike, start, stop) {
   try{
-    const start = parseFloat(svg.flowerStart.value)
-    const stop = parseFloat(svg.flowerStop.value)
-    const element = document.getElementById('spike')
+    // const start = parseFloat(svg.flowerStart.value)
+    // const stop = parseFloat(svg.flowerStop.value)
+    // const element = document.getElementById('spike')
+    const element = document.getElementById(spike)
     const length = element.getTotalLength() // float
     const top = element.getPointAtLength(start * length);
-    const mid = element.getPointAtLength(parseFloat((start + stop)/2) * length);
+    const mid = element.getPointAtLength(parseFloat((parseFloat(start)+parseFloat(stop))/2) * length);
     const bottom = element.getPointAtLength(stop * length)
-    svgFlower.xFlowerTop = top.x
-    svgFlower.xFlowerMid = mid.x
-    svgFlower.xFlowerBot = bottom.x
-    svgFlower.yFlowerTop = top.y
-    svgFlower.yFlowerMid = mid.y
-    svgFlower.yFlowerBot = bottom.y
+    if (spike === 'spike') {
+      svgFlower.xFlowerTop = top.x
+      svgFlower.xFlowerMid = mid.x
+      svgFlower.xFlowerBot = bottom.x
+      svgFlower.yFlowerTop = top.y
+      svgFlower.yFlowerMid = mid.y
+      svgFlower.yFlowerBot = bottom.y
+    } else if (spike === 'spike2') {
+      svgFlower2.xFlowerTop = top.x
+      svgFlower2.xFlowerMid = mid.x
+      svgFlower2.xFlowerBot = bottom.x
+      svgFlower2.yFlowerTop = top.y
+      svgFlower2.yFlowerMid = mid.y
+      svgFlower2.yFlowerBot = bottom.y
+    }
+
   } catch {
     console.warn('unable to query length of spike before it exists')
   }
@@ -414,12 +472,32 @@ function frondTest(i) {
 setTimeout(() => {
   watchEffect(() => { randomise() })
   watchEffect(() => {
-    const watchVariables = [svg.frondDroop.value, svg.frondSway.value]
+    const watchVariables = [
+      svg.noBranches.value,
+      svg.frondDroop.value,
+      svg.frondSway.value,
+      svg.frondLength.value]
     generateFronds();
   })
   watchEffect(() => {
-    const watchVariables = [svg.spikeSwayMid.value,svg.spikeSwayTop.value,svg.spikeHeight.value,svg.flowerStart.value,svg.flowerStop.value]
-    generateFlower();
+    const watchVariables = [
+      svg.spikeSwayMid.value,
+      svg.spikeSwayTop.value,
+      svg.spikeHeight.value,
+      svg.flowerStart.value,
+      svg.flowerStop.value,
+      svg.spikeVisible.value]
+    generateFlower('spike', svg.flowerStart.value, svg.flowerStop.value)
+  })
+    watchEffect(() => {
+    const watchVariables = [
+      svg.spikeSecondSwayMid.value,
+      svg.spikeSecondSwayTop.value,
+      svg.spikeSecondHeight.value,
+      svg.flowerSecondStart.value,
+      svg.flowerSecondStop.value,
+      svg.spikeSecondVisible.value]
+    generateFlower('spike2', svg.flowerSecondStart.value, svg.flowerSecondStop.value);
   })
 
 },100)
@@ -449,6 +527,9 @@ function randomiseShape(shape) {
 </script>
 
 <style scoped>
+.left {
+  text-align: left;
+}
 svg {
   border: 1px grey solid;
 }
@@ -485,6 +566,8 @@ svg {
 .display {
   flex: 1 1 auto;
   padding: 2rem;
+  overflow-y: auto;
+  height: 70vh;
 }
 .color {
   text-align: left;
@@ -505,16 +588,8 @@ div.checkbox * {
   flex: 1 0 33%
 }
 /* SVG */
-/* trunk animation */
-/* from{d: } reported to only be working in some browsers */
-/* @keyframes dance {
-  from {d: path(var(--trunk));}
-  to {d: path(var(--trunkAlt));}
-}  */
 
-.shape {
-  transition: 0.3s ease-in-out;
-}
+.shape { transition: 0.3s ease-in-out; }
 .shape .orange { fill: #f6782b; stroke: none; }
 .shape .grey { fill: grey; stroke: none; }
 .shape .black { fill: black; stroke: none; }
@@ -523,12 +598,8 @@ div.checkbox * {
 .trunk {
   stroke: url('#trunkColor');
   fill: none;
-  /* d: var(--trunk)); */
   stroke-width: var(--strokeWidth);
   stroke-linecap: round;
-  /* animation-name: var(--animationName);
-  animation-duration: 2s;
-  animation-iteration-count: infinite; */
 }
 .fronds{  
   stroke: green;
@@ -542,7 +613,8 @@ div.checkbox * {
 .lower {
   stroke: url('#frondColorLower')
 }
-#spike {
+#spike,
+#spike2 {
   stroke: olive;
   fill: none;
   stroke-width: 5px;
