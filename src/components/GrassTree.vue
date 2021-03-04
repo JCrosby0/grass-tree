@@ -1,7 +1,7 @@
 <template>
   <div class="page">
 
-    <h2>Grass Tree Builder Test</h2>
+    <h2>Grass Tree Builder</h2>
     <p>Here's a web app to build a grass tree in scalable vector graphics (SVG). 
       Change the inputs to build the tree trunk and spike, and then click the button to generate the fronds and flower.</p>
   <div class="container">
